@@ -1,0 +1,302 @@
+// Expt 1 - Arithmetic an dLogical Operations using PIC.//
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <p18f4550.h>
+void main(void)
+{
+unsigned int sum=0;
+sum = 0X02+0X03;  /* same program for other Arithmetic and Logical operations using PIC
+                  +,-,*,/,|,&(b/w two hexadecimal number)and in Logical NOT sum=~0X02 */
+TRISD =0;
+PORTD =sum;
+}
+
+
+
+
+// Expt 2 - To interface LED/Switch to PIC and turn on the LED when switch is pressed.//
+
+#define _XTAL_FREQ 16000000
+#include <xc.h>
+int main()
+{
+TRISD0 = 0; //RD0 as Output PIN
+TRISB0 = 1; //RB0 as Input PIN
+while(1)
+{
+if(RB0 == 0)
+{
+RD0 = 0; // LED ON
+}
+else
+{
+RD0 = 1; // LED OFF
+}
+}
+return 0;
+}
+
+
+
+
+
+// Expt 3 - Interfacng LCD to PIC
+
+#define _XTAL_FREQ 16000000
+#include <xc.h>
+#define RS PORTBbits.RB0
+#define EN PORTBbits.RB1
+void LCD_init(void);
+void lcd_cmd(unsigned char value);
+void lcd_data(unsigned char value1);
+void main(void)
+{
+LCD_init();
+lcd_data('S');
+lcd_data('A');
+lcd_data('N');
+lcd_data('J');
+lcd_data('E');
+lcd_data('E');
+lcd_data('T');
+while(1);
+}
+void LCD_init(void)
+{
+TRISD=0X00; //make PORTD o/p
+TRISB=0X00; //make PORTD o/p
+__delay_ms(100); //delay
+EN=1;
+__delay_us(2);
+EN=0;
+__delay_ms(3); //2ms delay
+lcd_cmd(0x38);
+lcd_cmd(0x0E);
+lcd_cmd(0x01);
+__delay_ms(2); //2ms delaylcd_cmd(0x06);
+lcd_cmd(0x80);
+}
+void lcd_cmd(unsigned char value)
+{
+PORTD=value;
+RS=0;
+EN=1;
+__delay_us(2);
+EN=0;
+__delay_ms(3); //2ms delay
+}
+void lcd_data(unsigned char value1)
+{
+PORTD=value1;
+RS=1; //Select data reg
+EN=1;
+__delay_us(2);
+EN=0;
+__delay_ms(3); //2ms delay
+}
+
+
+
+
+
+// Expt 4 - Interfacing Sensors to PIC 
+
+#define _XTAL_FREQ 16000000
+#include <xc.h>
+#define RS RB0
+#define EN RB1
+void ADC_init(void);
+unsigned int ADC_READ(void);
+void LCD_init(void);
+void lcd_cmd(unsigned char value);
+void lcd_data(unsigned char value1);
+void H2D(unsigned char hexdata);
+unsigned char L,M,H;
+void main(void)
+{
+unsigned int ADC_result;
+ADC_init();
+LCD_init();
+while(1)
+{
+ADC_result=ADC_READ();
+ADC_result=ADC_result*5; //resolution of ADC is 4.88mv
+ADC_result=ADC_result/10; //LM35 sensitivity 10mV/C
+H2D(ADC_result);
+lcd_cmd(0x01);
+lcd_data('T');lcd_data('=');
+lcd_data(H | 0x30);
+lcd_data(M | 0x30);
+lcd_data(L | 0x30);
+__delay_ms(500); //500ms delay
+} }
+void ADC_init(void)
+{
+TRISAbits.TRISA0=1; // AN0 set as analog i/p
+TRISAbits.TRISA1=1; // AN1 set as analog i/p
+ADRESH=0;
+ADRESL=0;
+PIR1bits.ADIF=0; //ADC flag clear
+ADCON1=0X8E; //MAKE AN0 as analog port
+ADCON0=0x40; //Select Chanel 0, conversion clock = FOSC / 8
+}
+unsigned int ADC_READ()
+{
+ADCON0bits.ADON=1; //ADC ON
+__delay_ms(2); //2ms delay
+ADCON0bits.GO=1; //start a/d conversion
+__delay_us(1);
+while(PIR1bits.ADIF==0);
+__delay_us(1);
+ADCON0bits.ADON=0; //ADC Off
+PIR1bits.ADIF=0;
+return (((unsigned int)ADRESH)<<8)|(ADRESL);
+}
+void LCD_init(void)
+{
+TRISD=0X00; //make PORTD o/pTRISB=0X00; //make PORTD o/p
+__delay_ms(100); //delay
+EN=1;
+__delay_us(2);
+EN=0;
+__delay_ms(3); //2ms delay
+lcd_cmd(0x38);
+lcd_cmd(0x0E);
+lcd_cmd(0x01);
+__delay_ms(2); //2ms delay
+lcd_cmd(0x06);
+lcd_cmd(0x80);
+}
+void lcd_cmd(unsigned char value)
+{
+PORTD=value;
+RS=0;
+EN=1;
+__delay_us(2);
+EN=0;
+__delay_ms(3); //2ms delay
+}
+void lcd_data(unsigned char value1)
+{
+PORTD=value1;
+RS=1; //Select data reg
+EN=1;
+__delay_us(2);
+EN=0;
+__delay_ms(3); //2ms delay
+}
+void H2D(unsigned char hexdata){
+unsigned char x;
+x=hexdata/10;
+L=hexdata%10;
+M=x%10;
+H=x/10;
+
+
+
+
+
+//Expt 5 - Design and develop On/Off controller usingmicrocontroller.
+
+
+#define _XTAL_FREQ 16000000
+#include <xc.h>
+void ADC_init(void);
+unsigned int ADC_READ(void);
+void main(void)
+{
+unsigned int ADC_result;
+ADC_init();
+TRISD0 = 0; //RD0 as Output PIN
+while(1)
+{
+ADC_result=ADC_READ();
+if(ADC_result > 500)
+{
+RD0 = 0; // LED ON
+}
+else
+{
+RD0 = 1; // LED OFF
+} } }
+void ADC_init(void)
+{
+TRISAbits.TRISA0=1; // AN0 set as analog i/pTRISAbits.TRISA1=1; // AN1 set as analog i/p
+ADRESH=0;
+ADRESL=0;
+PIR1bits.ADIF=0; //ADC flag clear
+ADCON1=0X8E; //MAKE AN0 as analog port
+ADCON0=0x40; //Select Chanel 0, conversion clock = FOSC / 8
+}
+unsigned int ADC_READ()
+{
+ADCON0bits.ADON=1; //ADC ON
+__delay_ms(2); //2ms delay
+ADCON0bits.GO=1; //start a/d conversion
+__delay_us(1);
+while(PIR1bits.ADIF==0);
+__delay_us(1);
+ADCON0bits.ADON=0; //ADC Off
+PIR1bits.ADIF=0;
+return (((unsigned int)ADRESH)<<8)|(ADRESL);
+}
+
+
+
+Expt 6 - Study of Arduino UNO interfacing with sensor LM35
+
+
+#include<LiquidCrystal.h>
+LiquidCrystal lcd(6, 7, 5, 4, 3, 2); //pins of the LCD. (RS, E, D4, D5, D6, D7)
+const int sensor=A0; // Assigning analog pin A1 to variable 'sensor'
+float tempc; //variable to store temperature in degree Celsius3 | P a g e
+float tempf; //variable to store temperature in Fahreinheit
+float vout; //temporary variable to hold sensor reading
+int Red_LED = 10;
+int Green_LED = 11;
+int Fan_P= 8;
+int Fan_N=9;
+void setup()
+{
+pinMode(Red_LED, OUTPUT);
+pinMode(Green_LED, OUTPUT);
+pinMode(Fan_P, OUTPUT);
+pinMode(Fan_N, OUTPUT);
+pinMode(sensor,INPUT); // Configuring pin A1 as input
+Serial.begin(9600);
+lcd.begin(16,2);
+delay(500);
+}
+void loop()
+{
+char sign = 223;
+vout=analogRead(sensor);
+tempc = (vout*500)/1023;
+//vout=vout* 0.48828125;
+lcd.setCursor(0,0);
+lcd.print("***Tempeature***");
+lcd.setCursor(0,1);
+lcd.print(tempc);
+lcd.print(sign);
+lcd.print("C ");
+lcd.print(" ");
+lcd.print((tempc*1.8)+32);
+lcd.print(sign);
+lcd.print("F ");
+delay(1000); //Delay of 1 second for ease of viewing in serial monitor
+if (tempc > 32)
+{
+digitalWrite(Red_LED, HIGH);
+digitalWrite(Fan_P, HIGH);
+digitalWrite(Fan_N, LOW);
+digitalWrite(Green_LED, LOW);
+}
+else if (tempc < 32)
+{
+digitalWrite(Green_LED, HIGH);
+digitalWrite(Fan_P, LOW);
+digitalWrite(Fan_N, LOW);
+digitalWrite(Red_LED, LOW);
+}
+}
